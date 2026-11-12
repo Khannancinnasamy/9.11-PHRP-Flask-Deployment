@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Patient Health Risk Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="inner">
+        <div class="brand">
+            <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+                <rect width="64" height="64" rx="14" fill="#0f7c8a"/>
+                <path d="M26 14h12v12h12v12H38v12H26V38H14V26h12z" fill="#fff"/>
+            </svg>
+            <div>Patient Health Risk<small>Clinical decision support</small></div>
+        </div>
+        <span class="tag">Demo model &middot; not for diagnosis</span>
+    </div>
+</header>
+
+<main class="wrap">
+
+    <div class="page-title">
+        <h1>New Risk Assessment</h1>
+        <p>Enter the patient's details. The summary on the right updates as you type.</p>
+    </div>
+
+    <div class="grid">
+
+        <!-- ================= FORM ================= -->
+        <section class="card">
+            <div class="card-head"><span class="dot"></span>Patient Vitals</div>
+            <div class="card-body">
+                <form action="/predict" method="POST">
+
+                    <div class="group">
+                        <p class="group-title">Patient profile</p>
+                        <div class="row">
+                            <div>
+                                <label for="Age">Age</label>
+                                <div class="control">
+                                    <input type="number" step="any" min="0" max="120" id="Age" name="Age" placeholder=" " required>
+                                    <span class="unit">years</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="BMI">Body Mass Index</label>
+                                <div class="control">
+                                    <input type="number" step="any" min="10" max="60" id="BMI" name="BMI" placeholder=" " required>
+                                    <span class="unit">kg/m²</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <p class="group-title">Cardiac</p>
+                        <label for="Heart_Rate">Heart Rate</label>
+                        <div class="control">
+                            <input type="number" step="any" min="30" max="200" id="Heart_Rate" name="Heart_Rate" placeholder=" " required>
+                            <span class="unit">bpm</span>
+                        </div>
+                        <div class="hint">Accepted range: 30 – 200 bpm</div>
+                    </div>
+
+                    <div class="group">
+                        <p class="group-title">Laboratory &amp; follow-up</p>
+                        <div class="row">
+                            <div>
+                                <label for="Cholesterol_Status">Cholesterol Status</label>
+                                <div class="control">
+                                    <select id="Cholesterol_Status" name="Cholesterol_Status" required>
+                                        <option value="" disabled selected>Select status</option>
+                                        <option value="normal">Normal</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="Follow_Up">Follow-up Interval</label>
+                                <div class="control">
+                                    <input type="number" step="any" min="0" max="365" id="Follow_Up" name="Follow_Up" placeholder=" " required>
+                                    <span class="unit">days</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary">Run Risk Assessment</button>
+                        <button type="reset" class="btn btn-ghost">Clear</button>
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= LIVE SUMMARY ================= -->
+        <aside>
+            <section class="card">
+                <div class="card-head"><span class="dot"></span>Live Patient Summary</div>
+                <div class="card-body">
+
+                    <div class="summary-row">
+                        <span class="k">Age group</span>
+                        <span class="v"><span id="s-age">&ndash;</span><span id="c-age" class="chip">Awaiting</span></span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="k">BMI category</span>
+                        <span class="v"><span id="s-bmi">&ndash;</span><span id="c-bmi" class="chip">Awaiting</span></span>
+                    </div>
+                    <div>
+                        <div class="scale"><div class="marker" id="marker"></div></div>
+                        <div class="scale-labels"><span style="left:3%">10</span><span style="left:28.3%">18.5</span><span style="left:50%">25</span><span style="left:66.7%">30</span><span style="left:96%">40+</span></div>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="k">Heart rate</span>
+                        <span class="v"><span id="s-hr">&ndash;</span><span id="c-hr" class="chip">Awaiting</span></span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="k">Cholesterol</span>
+                        <span class="v"><span id="c-chol" class="chip">Awaiting</span></span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="k">Next follow-up</span>
+                        <span class="v"><span id="s-fu">&ndash;</span></span>
+                    </div>
+
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-head"><span class="dot"></span>About this tool</div>
+                <div class="card-body note">
+                    The model estimates disease risk from <b>age, heart rate, follow-up interval,
+                    cholesterol status, age group and BMI category</b>. The summary above is for
+                    quick reference only. This is a practice model and must not be used for
+                    clinical decisions.
+                </div>
+            </section>
+        </aside>
+
+    </div>
+</main>
+
+<script>
+    const $ = id => document.getElementById(id);
+    const show = (key, text, level) => {
+        if ($("s-" + key)) $("s-" + key).textContent = text;
+    };
+    const chip = (id, text, level) => { $(id).textContent = text; $(id).className = "chip " + level; };
+
+    function update() {
+        const age = parseFloat($("Age").value);
+        const bmi = parseFloat($("BMI").value);
+        const hr  = parseFloat($("Heart_Rate").value);
+        const fu  = parseFloat($("Follow_Up").value);
+        const chol = $("Cholesterol_Status").value;
+
+        // Age group (same bins as the model)
+        if (isNaN(age)) { show("age", "–"); chip("c-age", "Awaiting", ""); }
+        else {
+            const g = age <= 18 ? ["Young", "info"] : age <= 40 ? ["Adult", "info"]
+                    : age <= 60 ? ["Middle age", "warn"] : ["Senior", "warn"];
+            show("age", age + " yrs"); chip("c-age", g[0], g[1]);
+        }
+
+        // BMI category (same bins as the model)
+        if (isNaN(bmi)) { show("bmi", "–"); chip("c-bmi", "Awaiting", ""); $("marker").style.display = "none"; }
+        else {
+            const c = bmi <= 18.5 ? ["Underweight", "info"] : bmi <= 25 ? ["Normal", "ok"]
+                    : bmi <= 30 ? ["Overweight", "warn"] : ["Obese", "bad"];
+            show("bmi", bmi.toFixed(1)); chip("c-bmi", c[0], c[1]);
+            const pct = Math.min(Math.max((bmi - 10) / 30, 0), 1) * 100;
+            $("marker").style.left = "calc(" + pct + "% - 2px)";
+            $("marker").style.display = "block";
+        }
+
+        // Heart rate zone
+        if (isNaN(hr)) { show("hr", "–"); chip("c-hr", "Awaiting", ""); }
+        else {
+            const z = hr < 60 ? ["Low", "info"] : hr <= 100 ? ["Normal", "ok"] : ["High", "bad"];
+            show("hr", hr + " bpm"); chip("c-hr", z[0], z[1]);
+        }
+
+        // Cholesterol
+        if (chol === "normal") chip("c-chol", "Normal", "ok");
+        else if (chol === "high") chip("c-chol", "High", "bad");
+        else chip("c-chol", "Awaiting", "");
+
+        // Follow-up
+        show("fu", isNaN(fu) ? "–" : fu + (fu === 1 ? " day" : " days"));
+    }
+
+    document.querySelectorAll("input, select").forEach(el => {
+        el.addEventListener("input", update);
+        el.addEventListener("change", update);
+    });
+    document.querySelector("form").addEventListener("reset", () => setTimeout(update, 0));
+    update();
+</script>
+
+</body>
+</html>

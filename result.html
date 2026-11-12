@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="inner">
+        <div class="brand">
+            <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+                <rect width="64" height="64" rx="14" fill="#0f7c8a"/>
+                <path d="M26 14h12v12h12v12H38v12H26V38H14V26h12z" fill="#fff"/>
+            </svg>
+            <div>Patient Health Risk<small>Clinical decision support</small></div>
+        </div>
+        <span class="tag">Demo model &middot; not for diagnosis</span>
+    </div>
+</header>
+
+<main class="wrap">
+
+    {% set high = (prediction == "Disease Detected") %}
+
+    <section class="card result {{ 'bad' if high else 'ok' }}">
+        <div class="card-head"><span class="dot"></span>Prediction Result</div>
+        <div class="card-body">
+
+            <div class="badge-icon">
+                {% if high %}
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                {% else %}
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                {% endif %}
+            </div>
+
+            <h2>{{ prediction }}</h2>
+            <p class="sub">
+                {% if high %}The model flags this patient as higher risk.
+                {% else %}The model does not flag this patient as high risk.{% endif %}
+            </p>
+
+            <div class="next">
+                <b>Suggested next step</b>
+                {% if high %}Refer for clinical review and confirmatory tests.
+                {% else %}Continue routine monitoring and the scheduled follow-up.{% endif %}
+            </div>
+
+            <div class="actions">
+                <a class="btn btn-primary" href="/" style="flex:0 0 auto">New Assessment</a>
+                <button class="btn btn-ghost" onclick="window.print()">Print</button>
+            </div>
+
+        </div>
+    </section>
+
+    <p class="disclaimer">
+        This is a practice machine-learning model and is not a medical diagnosis.
+        Always consult a qualified doctor.
+    </p>
+
+</main>
+
+</body>
+</html>
